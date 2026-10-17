@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Link Terkunci</title>
+<style>
+*{box-sizing:border-box;font-family:sans-serif}
+body{margin:0;background:#0f0f0f;color:#fff;padding:16px;display:flex;justify-content:center}
+.wrap{width:100%;max-width:480px}
+h1{text-align:center;font-size:22px;margin:10px 0 4px} h1 span{color:#FFD93D}
+p.sub{text-align:center;color:#aaa;font-size:13px;margin:0 0 16px}
+.card{background:#1e1e1e;border:1px solid #333;border-radius:16px;padding:16px;margin-bottom:14px}
+.card h3{margin:0 0 10px;font-size:15px}
+.video-box{position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:12px;overflow:hidden;border:2px solid #333}
+.video-box iframe{width:100%;height:100%;border:none}
+.badge{display:inline-block;font-size:11px;padding:4px 8px;border-radius:99px;font-weight:700;margin-left:6px}
+.badge.belum{background:#333;color:#aaa}.badge.sudah{background:#2ecc71;color:#fff}
+.btn{width:100%;padding:13px;border:none;border-radius:12px;font-weight:800;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;margin-bottom:10px}
+.btn-red{background:#FF0000;color:#fff}.btn-blue{background:#2563eb;color:#fff}.btn-dark{background:#2a2a2a;color:#fff;border:1px solid #444}.btn-yellow{background:#FFD93D;color:#000}
+.btn:disabled{opacity:.4}.btn:active{transform:scale(.97)}
+input{width:100%;padding:14px;border-radius:12px;border:2px solid #333;background:#2a2a2a;color:#fff;outline:none}
+input.kode{font-size:18px;text-align:center;letter-spacing:3px;text-transform:uppercase;font-weight:800}
+input:focus{border-color:#FFD93D}
+.status{text-align:center;font-size:13px;min-height:20px;margin-top:10px;font-weight:700}
+.status.err{color:#FF5252}.status.ok{color:#2ecc71}.status.wait{color:#FFD93D}
+.langkah{display:flex;gap:6px;margin:12px 0}.langkah div{flex:1;height:6px;background:#333;border-radius:99px}.langkah div.done{background:#2ecc71}
+.hint{background:#2a2a1e;border:1px dashed #FFD93D;border-radius:12px;padding:10px;font-size:12px;color:#FFD93D;text-align:center;margin-top:12px}
+.count{font-size:11px;color:#aaa;text-align:center;margin-top:6px}
+.top-info{background:#1e1e1e;border:1px solid #FFD93D;border-radius:12px;padding:10px;text-align:center;font-size:13px;margin-bottom:14px}
+.top-info b{color:#FFD93D}
+.list-item{background:#1e1e1e;border:1px solid #333;border-radius:14px;padding:14px;margin-bottom:10px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.list-item:active{transform:scale(.98);border-color:#FFD93D}
+.list-item b{font-size:15px;display:block}.list-item small{color:#aaa;font-size:12px}.list-item .panah{font-size:20px;color:#FFD93D}
+.search{margin-bottom:12px}
+.hidden{display:none!important}
+.loading{text-align:center;color:#aaa;padding:30px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="halamanList">
+    <h1>📦 DAFTAR <span>LINK</span></h1>
+    <p class="sub">Pilih file yang mau kamu download</p>
+    <input class="search" id="cari" placeholder="🔍 Cari file..." oninput="renderList()">
+    <div id="loading" class="loading">⏳ Memuat dari Firebase...</div>
+    <div id="listContainer"></div>
+    <p id="listKosong" style="text-align:center;color:#888;display:none">Belum ada link. Cek lagi nanti.</p>
+  </div>
+
+  <div id="halamanDetail" class="hidden">
+    <button class="btn btn-dark" onclick="kembaliKeList()" style="margin-bottom:14px">← Kembali ke Daftar</button>
+    <h1>🔒 LINK <span>TERKUNCI</span></h1>
+    <div class="top-info">📦 File: <b id="judulUser">Memuat...</b></div>
+    <p class="sub">Selesaikan tugas untuk membuka link</p>
+    <div class="langkah"><div id="bar1"></div><div id="bar2"></div><div id="bar3"></div></div>
+    <div class="card" id="card1"><h3>1️⃣ <span id="labelTugas1">Subscribe</span> <span class="badge belum" id="badge1">BELUM</span></h3><a class="btn btn-red" id="btnTugas1" href="#" target="_blank" rel="noopener">SUBSCRIBE</a></div>
+    <div class="card" id="card2"><h3>2️⃣ <span id="labelTugas2">Komen</span> <span class="badge belum" id="badge2">BELUM</span></h3><a class="btn btn-blue" id="btnTugas2" href="#" target="_blank" rel="noopener">KOMEN</a></div>
+    <div class="card" id="cardVideo"><h3>3️⃣ Tonton Video <span class="badge belum" id="badge3">BELUM</span></h3><p style="font-size:12px;color:#aaa;margin:0 0 10px">Kode aksesnya ada di dalam video. Tonton sampai selesai.</p><div class="video-box"><iframe id="videoFrame" src="" title="Video tutorial" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div><div class="hint" id="nontonTxt">⏳ Tonton minimal <span id="detikTxt">15</span> detik...</div><button class="btn btn-yellow" id="btnNonton" onclick="mulaiNonton()">▶️ SAYA SUDAH NONTON</button></div>
+    <div class="card" id="cardKode" style="opacity:.5;pointer-events:none"><h3>🔑 Masukkan Kode Akses</h3><input class="kode" id="inputKode" placeholder="MASUKIN KODE" maxlength="20"><button class="btn btn-dark" onclick="cekKode()">✅ CEK KODE</button><div id="statusTxt" class="status wait">Menunggu kode...</div></div>
+    <div class="card" id="cardBuka" style="display:none;background:#1e3a1e;border-color:#2ecc71"><h3 style="color:#2ecc71">✅ Kode Benar! Link Terbuka</h3><a class="btn" id="btnDownload" style="background:#2ecc71;color:#fff" href="#" target="_blank" rel="noopener">DOWNLOAD</a></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDasO8TzkeiWOPoa-3U3yzdprkYGogf9nk",
+  authDomain: "my-project-8f3a3.firebaseapp.com",
+  databaseURL: "https://my-project-8f3a3-default-rtdb.firebaseio.com",
+  projectId: "my-project-8f3a3",
+  storageBucket: "my-project-8f3a3.firebasestorage.app",
+  messagingSenderId: "208946886241",
+  appId: "1:208946886241:web:74c100e4f377a1d4411c20",
+  measurementId: "G-J51CC70B6M"
+};
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+let allLinks = [];
+let cfg = null;
+let tugas = {1:false,2:false,3:false};
+window.tugas = tugas;
+
+onValue(ref(db, 'links'), (snapshot)=>{
+  let data = snapshot.val();
+  if(data){
+    allLinks = Object.keys(data).map(k=>({id:k, ...data[k]}));
+  } else {
+    allLinks = [];
+  }
+  document.getElementById('loading').style.display='none';
+  renderList();
+  if(cfg){
+    let fresh = allLinks.find(l=>l.id===cfg.id);
+    if(fresh) cfg = fresh;
+  }
+  let directId = new URLSearchParams(location.search).get('id');
+  if(directId && !cfg){
+    let idx = allLinks.findIndex(l=>l.id===directId);
+    if(idx>=0) pilihLink(idx);
+  }
+}, (err)=>{ document.getElementById('loading').textContent = '❌ Gagal memuat: '+err.message; });
+
+window.renderList = function(){
+  let q=(document.getElementById('cari').value||'').toLowerCase();
+  let list = allLinks.filter(l=>l.aktif!==false && (l.nama+'').toLowerCase().includes(q));
+  let c=document.getElementById('listContainer');
+  document.getElementById('listKosong').style.display = list.length===0 && allLinks.length>0 ? 'block':'none';
+  c.innerHTML = list.map(l=>{
+    let idx = allLinks.indexOf(l);
+    return `<div class="list-item" onclick="pilihLink(${idx})"><div><b>📦 ${l.nama}</b><small>🔑 Kode di video • 👁️ ${l.klik||0}x dibuka</small></div><div class="panah">›</div></div>`;
+  }).join('');
+};
+
+window.pilihLink = function(idx){
+  cfg = allLinks[idx]; tugas={1:false,2:false,3:false};
+  ['1','2','3'].forEach(n=>{ let b=document.getElementById('badge'+n); if(b){b.textContent='BELUM'; b.className='badge belum';} let bar=document.getElementById('bar'+n); if(bar) bar.classList.remove('done'); });
+  document.getElementById('cardKode').style.opacity='.5';
+  document.getElementById('cardKode').style.pointerEvents='none';
+  document.getElementById('cardBuka').style.display='none';
+  document.getElementById('inputKode').value='';
+  document.getElementById('statusTxt').textContent='Menunggu kode...';
+  document.getElementById('statusTxt').className='status wait';
+  let btnN=document.getElementById('btnNonton'); btnN.disabled=false; btnN.textContent='▶️ SAYA SUDAH NONTON';
+  document.getElementById('nontonTxt').innerHTML='⏳ Tonton minimal <span id="detikTxt">'+(cfg.detik||15)+'</span> detik...';
+  document.getElementById('judulUser').textContent=cfg.nama;
+  document.getElementById('labelTugas1').textContent=cfg.label1||'Subscribe';
+  document.getElementById('labelTugas2').textContent=cfg.label2||'Komen';
+  document.getElementById('btnTugas1').textContent=cfg.btn1||'SUBSCRIBE';
+  document.getElementById('btnTugas1').href=cfg.link1||'#';
+  document.getElementById('btnTugas2').textContent=cfg.btn2||'KOMEN';
+  document.getElementById('btnTugas2').href=cfg.link2||'#';
+  document.getElementById('detikTxt').textContent=cfg.detik||15;
+  document.getElementById('videoFrame').src = cfg.videoEmbed ? cfg.videoEmbed : 'https://www.youtube.com/embed/'+(cfg.videoId||'')+'?rel=0';
+  document.getElementById('btnDownload').textContent=cfg.btnDownload||'DOWNLOAD';
+  document.getElementById('btnDownload').href=cfg.download||'#';
+  document.getElementById('card1').style.display = cfg.tugas1===false?'none':'block';
+  document.getElementById('card2').style.display = cfg.tugas2===false?'none':'block';
+  document.getElementById('cardVideo').style.display = cfg.tugas3===false?'none':'block';
+  if(cfg.tugas1===false) selesaiTugas(1,true);
+  if(cfg.tugas2===false) selesaiTugas(2,true);
+  if(cfg.tugas3===false){ tugas[3]=true; document.getElementById('badge3').textContent='SELESAI ✓'; document.getElementById('badge3').className='badge sudah'; document.getElementById('bar3').classList.add('done'); }
+  document.getElementById('halamanList').classList.add('hidden');
+  document.getElementById('halamanDetail').classList.remove('hidden');
+  window.scrollTo(0,0); cekSemua();
+};
+window.kembaliKeList = function(){ document.getElementById('halamanDetail').classList.add('hidden'); document.getElementById('halamanList').classList.remove('hidden'); };
+window.selesaiTugas = function(no,silent){ tugas[no]=true; let b=document.getElementById('badge'+no); if(b){b.textContent='SELESAI ✓'; b.className='badge sudah';} let bar=document.getElementById('bar'+no); if(bar) bar.classList.add('done'); cekSemua(); };
+window.mulaiNonton = function(){ let btn=document.getElementById('btnNonton'); btn.disabled=true; let sisa=parseInt(cfg.detik)||15; btn.textContent='⏳ Tunggu '+sisa+' detik...'; let iv=setInterval(()=>{ sisa--; if(sisa<=0){ clearInterval(iv); btn.textContent='✅ TONTON SELESAI'; btn.disabled=false; selesaiTugas(3,false); } else { btn.textContent='⏳ Tunggu '+sisa+' detik...'; } },1000); };
+window.cekSemua = function(){ if(!cfg) return; let ok=(!cfg.tugas1||tugas[1])&&(!cfg.tugas2||tugas[2])&&(!cfg.tugas3||tugas[3]); if(ok){ let c=document.getElementById('cardKode'); c.style.opacity='1'; c.style.pointerEvents='auto'; } };
+window.cekKode = function(){
+  let input=document.getElementById('inputKode').value.trim().toUpperCase(); let st=document.getElementById('statusTxt');
+  if(!input){ st.textContent='❌ Kodenya belum diisi!'; st.className='status err'; return; }
+  if(input===(cfg.kode||'').toUpperCase()){
+    st.textContent='✅ Kode Benar! Membuka link...'; st.className='status ok';
+    document.getElementById('cardBuka').style.display='block';
+    update(ref(db, 'links/'+cfg.id), { klik: (cfg.klik||0)+1 });
+    document.getElementById('cardBuka').scrollIntoView({behavior:'smooth'});
+    setTimeout(()=>{ window.open(cfg.download,'_blank'); },1000);
+  } else { st.textContent='❌ Kode Salah! Tonton lagi videonya.'; st.className='status err'; document.getElementById('inputKode').value=''; }
+};
+document.getElementById('inputKode').addEventListener('keypress',e=>{ if(e.key==='Enter') cekKode(); });
+</script>
+</body>
+</html>
